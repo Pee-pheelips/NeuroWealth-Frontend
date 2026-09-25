@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useEffect, useMemo } from "react";
+import React, { Fragment, useState, useEffect, useMemo } from "react";
 import { AuditEvent, getAuditService } from "@/lib/audit-service";
 import { Download, Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -23,14 +23,29 @@ export function AuditTrail() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
-    // Simulate async fetch of audit events
-    const timer = setTimeout(async () => {
-      const data = await getAuditService().getEvents();
-      setEvents(data);
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    
+    async function loadEvents() {
+      try {
+        const data = await getAuditService().getEvents();
+        if (!controller.signal.aborted) {
+          setEvents(data);
+          setLoading(false);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    }
+    
+    const timer = setTimeout(() => loadEvents(), 800);
+    
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, []);
 
   const filteredEvents = useMemo(() => {

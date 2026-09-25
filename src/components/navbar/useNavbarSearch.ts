@@ -1,13 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useEffect, useState } from "react";
 
 export function useNavbarSearch() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isDesktopSearchActive, setIsDesktopSearchActive] = useState(false);
-  const mobileSearchRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(mobileSearchRef, isMobileSearchOpen);
 
   useEffect(() => {
     if (!isMobileSearchOpen) return;
@@ -22,7 +19,6 @@ export function useNavbarSearch() {
     setIsMobileSearchOpen,
     isDesktopSearchActive,
     setIsDesktopSearchActive,
-    mobileSearchRef,
   };
 }
 

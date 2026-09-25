@@ -30,8 +30,8 @@ export const transactionHistoryQuerySchema = z.object({
 export const transactionKindSchema = z.enum(["deposit", "withdrawal"]);
 
 export const transactionFormValuesSchema = z.object({
-  amount: z.string(),
-  walletAddress: z.string(),
+  amount: z.string().max(32),
+  walletAddress: z.string().max(56),
   walletConnected: z.boolean(),
 });
 

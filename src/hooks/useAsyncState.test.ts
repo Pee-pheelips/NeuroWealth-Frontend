@@ -80,8 +80,8 @@ describe("useAsyncState reducer", () => {
       resolveFirst = resolve;
     });
 
-    let run1!: Promise<string | undefined>;
-    let run2!: Promise<string | undefined>;
+    let run1!: Promise<void>;
+    let run2!: Promise<void>;
 
     act(() => {
       run1 = result.current.run(() => firstPromise);

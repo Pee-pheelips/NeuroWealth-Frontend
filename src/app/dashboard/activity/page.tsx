@@ -8,7 +8,7 @@ export const metadata = { title: "Activity — NeuroWealth" };
 export default function ActivityPage() {
   return (
     <Suspense fallback={<ActivityLoading />}>
-      <TransactionHistory />
+      <TransactionHistory embedded />
     </Suspense>
   );
 }

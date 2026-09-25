@@ -16,13 +16,16 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { createElement, useEffect, useMemo, useState, type ReactNode } from "react";
+import React, { createElement, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 
 import { setupDomGlobals } from "@/test-setup";
+import { AuditTrail } from "./AuditTrail";
+import { I18nProvider } from "@/contexts/I18nContext";
 
 setupDomGlobals();
+(globalThis as any).React = React;
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -146,4 +149,21 @@ test("AuditTrail calls useMemo before its loading-gated early return", () => {
     useMemoIndex < earlyReturnIndex,
     "useMemo must run before the loading-gated early return, or hook order breaks across the loading -> loaded transition",
   );
+});
+
+test("AuditTrail safely unmounts while data fetch is pending without errors (#967)", async () => {
+  const { root, container } = renderToContainer(
+    createElement(I18nProvider, null, createElement(AuditTrail)),
+  );
+
+  // AuditTrail starts in loading state
+  assert.ok(container.innerHTML.length > 0, "expected container to render initial loading skeleton");
+
+  // Unmount while fetch timer is still pending
+  cleanup(root, container);
+
+  // Advance time past the 800ms fetch delay; aborted signal prevents state updates on unmounted component
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 850));
+  });
 });

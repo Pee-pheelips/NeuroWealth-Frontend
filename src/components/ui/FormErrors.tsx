@@ -60,17 +60,26 @@ export function SectionError({
 export function FormErrorSummary({
   title,
   errors,
+  submitCount,
 }: {
   title: string;
   errors: string[];
+  submitCount?: number;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
+  const prevCountRef = useRef(0);
+  const prevSubmitCountRef = useRef(submitCount);
 
   useEffect(() => {
-    if (errors.length > 0) {
+    const isNewSubmit = submitCount !== undefined && submitCount !== prevSubmitCountRef.current;
+    const justAppeared = errors.length > 0 && prevCountRef.current === 0;
+
+    if (errors.length > 0 && (justAppeared || isNewSubmit)) {
       ref.current?.focus();
     }
-  }, [errors]);
+    prevCountRef.current = errors.length;
+    prevSubmitCountRef.current = submitCount;
+  }, [errors, submitCount]);
 
   if (errors.length === 0) {
     return null;

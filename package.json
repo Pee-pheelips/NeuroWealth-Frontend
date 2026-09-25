@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "TZ=UTC node --import tsx --test $(find src -name '*.test.ts' -print)",
+    "test": "TZ=UTC node --import tsx --test $(find src -name '*.test.ts' -print -o -name '*.test.tsx' -print)",
     "test:e2e": "playwright test",
     "qa:visual-baseline": "node scripts/capture-visual-baselines.mjs",
     "lint": "next lint",
@@ -19,7 +19,7 @@
     "validate:env:server": "tsx scripts/validate-env.ts",
     "validate:env:frontend": "tsx scripts/validate-frontend-env.ts",
     "analyze": "ANALYZE=true next build",
-    "validate:config": "node -e \"const c={'package.json':['name','packageManager'],'tsconfig.json':['compilerOptions','include']};for(const [f,keys] of Object.entries(c)){try{const d=JSON.parse(require('fs').readFileSync(f,'utf8'));console.log('✓',f,'is valid JSON');for(const k of keys){if(!d[k])throw new Error('Missing required field: '+k);}console.log('✓',f,'has required fields');}catch(e){console.error('✗',f,'validation failed:',e.message);process.exit(1);}}\"",
+    "validate:config": "node scripts/validate-config.js",
     "prepare": "husky"
   },
   "dependencies": {
@@ -47,6 +47,7 @@
     "@tailwindcss/postcss": "^4.2.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^20.19.37",
     "@types/react": "^18.3.28",

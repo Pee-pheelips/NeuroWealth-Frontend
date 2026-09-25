@@ -15,7 +15,6 @@ interface Issue {
   severity: 'low' | 'medium' | 'high';
 }
 
-const issueSeverities: Issue['severity'][] = ['medium', 'high', 'high', 'medium', 'medium', 'low'];
 
 const severityColors = {
   low: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -23,17 +22,22 @@ const severityColors = {
   high: 'bg-red-500/20 text-red-400 border-red-500/30'
 };
 
-export default function TransactionGuidance() {
+interface TransactionGuidanceProps {
+  /** Opens the Help Center's Contact Support tab. */
+  onContactSupport?: () => void;
+}
+
+export default function TransactionGuidance({ onContactSupport }: TransactionGuidanceProps = {}) {
   const { messages } = useI18n();
   const t = messages.help.guidance;
-  const transactionIssues: Issue[] = t.issues.map((issue, index) => ({
-    id: String(index + 1),
+  const transactionIssues: Issue[] = t.issues.map((issue) => ({
+    id: issue.id,
     title: issue.title,
     description: issue.description,
     symptoms: issue.symptoms,
     solutions: issue.solutions,
     preventive: issue.preventive,
-    severity: issueSeverities[index],
+    severity: issue.severity,
   }));
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<'symptoms' | 'solutions' | 'preventive' | null>(null);
@@ -226,7 +230,16 @@ export default function TransactionGuidance() {
                   <Button variant="ghost" onClick={() => setSelectedIssue(null)}>
                     {t.backToAll}
                   </Button>
-                  <Button variant="ghost" onClick={() => (globalThis.location.href = '/help#support')}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      if (onContactSupport) {
+                        onContactSupport();
+                      } else {
+                        globalThis.location.assign('/dashboard/help');
+                      }
+                    }}
+                  >
                     {t.contactSupport}
                   </Button>
                 </div>

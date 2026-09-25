@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { z } from "zod";
-import { buildValidationDetails, zodErrorToDetails } from "./api";
+import {
+  buildValidationDetails,
+  transactionFormValuesSchema,
+  zodErrorToDetails,
+} from "./api";
 
 test("buildValidationDetails formats paths correctly", () => {
   assert.deepEqual(buildValidationDetails(["user", "email"], "Invalid"), ["user.email", "Invalid"]);
@@ -50,4 +54,27 @@ test("zodErrorToDetails groups multiple issues on the same path", () => {
   assert.deepEqual(details, {
     "password": ["Too short", "Needs uppercase"]
   });
+});
+
+test("transactionFormValuesSchema rejects oversized amount and walletAddress", () => {
+  const oversizedAmount = transactionFormValuesSchema.safeParse({
+    amount: "1".repeat(33),
+    walletAddress: "G".repeat(56),
+    walletConnected: true,
+  });
+  assert.equal(oversizedAmount.success, false);
+
+  const oversizedWalletAddress = transactionFormValuesSchema.safeParse({
+    amount: "100",
+    walletAddress: "G".repeat(57),
+    walletConnected: true,
+  });
+  assert.equal(oversizedWalletAddress.success, false);
+
+  const withinBounds = transactionFormValuesSchema.safeParse({
+    amount: "100",
+    walletAddress: "G".repeat(56),
+    walletConnected: true,
+  });
+  assert.equal(withinBounds.success, true);
 });

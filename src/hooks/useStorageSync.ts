@@ -14,10 +14,10 @@ export function useStorageSync(
     }
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key !== key) {
+      if (event.key && event.key !== key) {
         return;
       }
-      onChange(event.newValue);
+      onChange(event.newValue ?? null);
     };
 
     window.addEventListener("storage", handleStorageChange);

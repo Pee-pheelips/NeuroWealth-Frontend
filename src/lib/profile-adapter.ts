@@ -8,12 +8,8 @@ export { DEFAULT_PROFILE, mockProfileService } from "@/lib/mock-services";
 
 import { ProfileService, mockProfileService } from "@/lib/mock-services";
 
-let activeProfileAdapter: ProfileService = mockProfileService;
+const activeProfileAdapter: ProfileService = mockProfileService;
 
 export function getProfileAdapter(): ProfileService {
   return activeProfileAdapter;
-}
-
-export function setProfileAdapter(adapter: ProfileService): void {
-  activeProfileAdapter = adapter;
 }

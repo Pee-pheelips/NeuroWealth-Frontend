@@ -47,7 +47,10 @@ export function ErrorPage({
       ref={containerRef}
       id={ownsLandmark ? MAIN_CONTENT_LANDMARK_ID : undefined}
       tabIndex={-1}
-      className="min-h-screen flex items-center justify-center bg-dark-900 px-4"
+      className={ownsLandmark 
+        ? "min-h-screen flex items-center justify-center bg-dark-900 px-4"
+        : "flex items-center justify-center bg-dark-900 px-4 py-8"
+      }
     >
       <div className="text-center max-w-md">
         {icon && (

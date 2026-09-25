@@ -245,15 +245,9 @@ export default function StrategyList() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div className="flex items-center justify-between">
         <h2 className="m-0 text-base font-medium text-slate-900 dark:text-slate-50">
           Investment Strategies
         </h2>
@@ -270,44 +264,16 @@ export default function StrategyList() {
       />
 
       {/* Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: 12,
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
         {items.map((strategy) => (
           <div
             key={strategy.id}
-            style={{
-              border: "0.5px solid #374151",
-              borderRadius: 10,
-              padding: 14,
-              background: "#111827",
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-            }}
+            className="flex flex-col gap-2.5 rounded-[10px] border border-slate-200 bg-white p-3.5 dark:border-gray-700 dark:bg-gray-900"
           >
             {/* Title + Status */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "start",
-                gap: 8,
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "#f9fafb",
-                  }}
-                >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="m-0 text-sm font-medium text-slate-900 dark:text-gray-50">
                   {strategy.name}
                 </h3>
               </div>
@@ -317,75 +283,32 @@ export default function StrategyList() {
             </div>
 
             {/* Meta */}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant={RISK_BADGE_VARIANT[strategy.riskLevel]} size="sm">
                 {strategy.riskLevel.charAt(0).toUpperCase() +
                   strategy.riskLevel.slice(1)}{" "}
                 Risk
               </Badge>
-              <span
-                style={{
-                  fontSize: 11,
-                  color: "#9ca3af",
-                  background: "#1f2937",
-                  borderRadius: 4,
-                  padding: "2px 7px",
-                }}
-              >
+              <span className="rounded bg-slate-100 px-[7px] py-0.5 text-[11px] text-slate-600 dark:bg-gray-800 dark:text-gray-400">
                 {strategy.category}
               </span>
             </div>
 
             {/* Stats */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                borderTop: "0.5px solid #1f2937",
-                paddingTop: 10,
-              }}
-            >
+            <div className="flex justify-between border-t border-slate-200 pt-2.5 dark:border-gray-800">
               <div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 10,
-                    color: "#6b7280",
-                    fontWeight: 500,
-                  }}
-                >
+                <p className="m-0 text-[10px] font-medium text-slate-500 dark:text-gray-500">
                   RETURN
                 </p>
-                <p
-                  style={{
-                    margin: "2px 0 0",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#10b981",
-                  }}
-                >
+                <p className="mt-0.5 mb-0 text-sm font-semibold text-emerald-600 dark:text-emerald-500">
                   {strategy.returnRate.toFixed(1)}%
                 </p>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 10,
-                    color: "#6b7280",
-                    fontWeight: 500,
-                  }}
-                >
+              <div className="text-right">
+                <p className="m-0 text-[10px] font-medium text-slate-500 dark:text-gray-500">
                   PARTICIPANTS
                 </p>
-                <p
-                  style={{
-                    margin: "2px 0 0",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#a5b4fc",
-                  }}
-                >
+                <p className="mt-0.5 mb-0 text-sm font-semibold text-indigo-600 dark:text-indigo-300">
                   {formatNumber(strategy.participants)}
                 </p>
               </div>

@@ -57,6 +57,7 @@ export default function SignUpPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [state, setState] = useState<SignUpState>("idle");
   const [submitted, setSubmitted] = useState(false);
+  const [submitCount, setSubmitCount] = useState(0);
   const [errors, setErrors] = useState<ValidationErrors<SignUpField>>({});
   const [emailValidating, setEmailValidating] = useState(false);
   const debouncedAsyncCheckRef = useRef(createDebouncedAsyncCheck(300));
@@ -113,6 +114,7 @@ export default function SignUpPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitted(true);
+    setSubmitCount((c) => c + 1);
 
     const nextErrors = validateSync();
     if (getErrorList(nextErrors).length > 0) {
@@ -164,7 +166,10 @@ export default function SignUpPage() {
     }
   };
 
-  const summaryErrors = submitted ? getErrorList(errors) : [];
+  const summaryErrors = useMemo(
+    () => (submitted ? getErrorList(errors) : []),
+    [submitted, errors],
+  );
   const passwordSectionError =
     errors.password || errors.terms
       ? "Review the password rules and accept the terms before submitting."
@@ -189,6 +194,7 @@ export default function SignUpPage() {
         <FormErrorSummary
           title="Please fix the account setup errors below."
           errors={summaryErrors}
+          submitCount={submitCount}
         />
 
         {isSuccess ? (

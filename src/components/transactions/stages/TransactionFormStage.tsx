@@ -44,7 +44,7 @@ export function TransactionFormStage({
 }: TransactionFormStageProps) {
   const { messages } = useI18n();
   const t = messages.transactions;
-  const context = getTransactionContext(kind);
+  const context = getTransactionContext(kind, messages.transactions.domain.context);
 
   const amountInputClassName = [
     styles.input,

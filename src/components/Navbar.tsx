@@ -51,7 +51,6 @@ export function Navbar() {
       <NavbarSearchModal
         isMobileSearchOpen={search.isMobileSearchOpen}
         setIsMobileSearchOpen={search.setIsMobileSearchOpen}
-        mobileSearchRef={search.mobileSearchRef}
       />
     </nav>
   );

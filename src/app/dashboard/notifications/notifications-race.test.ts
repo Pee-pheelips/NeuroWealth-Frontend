@@ -12,8 +12,8 @@ describe("Notifications page scenario rapid switching race condition guard", () 
       resolveSlowScenario = resolve;
     });
 
-    let firstRunPromise!: Promise<string | undefined>;
-    let secondRunPromise!: Promise<string | undefined>;
+    let firstRunPromise!: Promise<void>;
+    let secondRunPromise!: Promise<void>;
 
     // 1. User selects "loading" scenario (slow, delayed response)
     act(() => {

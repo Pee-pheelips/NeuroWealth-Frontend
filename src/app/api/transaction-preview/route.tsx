@@ -7,6 +7,7 @@ import {
 } from "@/lib/transactions";
 import { parseTransactionPreviewSearchParams } from "@/lib/preview-route-query";
 import { ImageResponse } from "next/og";
+import { checkRateLimit, getRateLimitKey } from "@/lib/rate-limit";
 
 
 type ThemeMode = "light" | "dark";
@@ -48,6 +49,18 @@ function getToneColor(tone: "success" | "warning" | "error") {
 }
 
 export async function GET(request: Request) {
+  const ip = getRateLimitKey(request);
+  const limit = checkRateLimit(`GET:/api/transaction-preview:${ip}`, {
+    maxRequests: 30,
+    windowMs: 60_000,
+  });
+  if (!limit.allowed) {
+    return new Response("Too many requests. Please try again later.", {
+      status: 429,
+      headers: { "Retry-After": String(Math.ceil(limit.retryAfterMs / 1000)) },
+    });
+  }
+
   const { searchParams } = new URL(request.url);
   const { theme, kind, preview } =
     parseTransactionPreviewSearchParams(searchParams);

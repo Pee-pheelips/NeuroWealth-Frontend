@@ -14,7 +14,7 @@ import {
     validateTransactionValues,
 } from "@/lib/transactions";
 
-export function useTransactionForm(kind: TransactionKind) {
+export function useTransactionForm(kind: TransactionKind, tDomain: any) {
     const [formValues, setFormValues] = useState<TransactionFormValues>(() =>
         getDefaultTransactionValues(kind),
     );
@@ -40,7 +40,7 @@ export function useTransactionForm(kind: TransactionKind) {
     );
 
     const validate = useCallback((): boolean => {
-        const localErrors = validateTransactionValues(kind, formValues);
+        const localErrors = validateTransactionValues(kind, formValues, tDomain);
 
         if (Object.keys(localErrors).length > 0) {
             setFieldErrors(localErrors);

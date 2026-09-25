@@ -73,7 +73,7 @@ export default function HelpPage() {
         hidden={activeTab !== "transactions"}
         tabIndex={0}
       >
-        <TransactionGuidance />
+        <TransactionGuidance onContactSupport={() => setActiveTab("contact")} />
       </div>
 
       <div

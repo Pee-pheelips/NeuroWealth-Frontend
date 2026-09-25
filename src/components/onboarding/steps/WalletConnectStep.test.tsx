@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import WalletConnectStep from "./WalletConnectStep";
+import { setupDomGlobals } from "../../../test-setup";
+
+setupDomGlobals();
 
 function renderStep() {
   return render(

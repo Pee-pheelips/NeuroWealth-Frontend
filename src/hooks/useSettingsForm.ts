@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { mockAuditService } from "@/lib/mock-audit";
 import { logger } from "@/lib/logger";
 import { useStorageSync } from "@/hooks/useStorageSync";
@@ -23,35 +23,56 @@ export function useSettingsForm<T>(
 ) {
   const [saved, setSaved] = useState<T>(defaultValue);
   const [draft, setDraft] = useState<T>(defaultValue);
-  const [editing, setEditing] = useState(false);
+  const [editing, _setEditing] = useState(false);
+  const editingRef = useRef(false);
+  const setEditing = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    _setEditing((prev) => {
+      const next = typeof value === "function" ? value(prev) : value;
+      editingRef.current = next;
+      return next;
+    });
+  }, []);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [pageLoading, setPageLoading] = useState(true);
 
+  // Callers may pass an inline default object; keeping it in a ref stops a new
+  // identity on every render from re-running the initial load and clobbering
+  // an in-progress draft.
+  const defaultValueRef = useRef(defaultValue);
+  defaultValueRef.current = defaultValue;
+
   const syncFromStorage = useCallback(() => {
+    const fallback = defaultValueRef.current;
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored == null) {
-        setSaved(defaultValue);
-        setDraft(defaultValue);
+        setSaved(fallback);
+        if (!editingRef.current) {
+          setDraft(fallback);
+        }
         return;
       }
 
       const data = JSON.parse(stored) as T;
       setSaved(data);
-      setDraft(data);
+      if (!editingRef.current) {
+        setDraft(data);
+      }
     } catch (error) {
       logger.error("Failed to load saved settings from localStorage", {
         storageKey,
         error,
       });
-      setSaved(defaultValue);
-      setDraft(defaultValue);
+      setSaved(fallback);
+      if (!editingRef.current) {
+        setDraft(fallback);
+      }
     }
-  }, [defaultValue, storageKey]);
+  }, [storageKey]);
 
   useStorageSync(storageKey, () => {
-    if (!editing) {
+    if (!editingRef.current) {
       syncFromStorage();
     }
   });
@@ -63,36 +84,6 @@ export function useSettingsForm<T>(
     }, options.loadDelayMs ?? 600);
     return () => clearTimeout(timer);
   }, [options.loadDelayMs, syncFromStorage]);
-
-  useEffect(() => {
-    const handleSync = (e?: Event) => {
-      if (e instanceof StorageEvent && e.key && e.key !== storageKey) {
-        return;
-      }
-      try {
-        const stored = localStorage.getItem(storageKey);
-        if (stored) {
-          const data = JSON.parse(stored) as T;
-          setSaved(data);
-          if (!editing) {
-            setDraft(data);
-          }
-        }
-      } catch (error) {
-        logger.error("Failed to sync storage change in useSettingsForm", {
-          storageKey,
-          error,
-        });
-      }
-    };
-
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("notification-preferences-updated", handleSync);
-    return () => {
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("notification-preferences-updated", handleSync);
-    };
-  }, [storageKey, editing]);
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(saved);
 
@@ -107,7 +98,19 @@ export function useSettingsForm<T>(
       if (typeof window !== "undefined") {
         try {
           const EventCtor = window.Event || Event;
-          window.dispatchEvent(new EventCtor("storage"));
+          const storagePayload = {
+            key: storageKey,
+            newValue: JSON.stringify(draft),
+          };
+          let storageEvent: Event;
+          if (typeof window.StorageEvent === "function") {
+            storageEvent = new window.StorageEvent("storage", storagePayload);
+          } else if (typeof StorageEvent === "function") {
+            storageEvent = new StorageEvent("storage", storagePayload);
+          } else {
+            storageEvent = Object.assign(new EventCtor("storage"), storagePayload);
+          }
+          window.dispatchEvent(storageEvent);
           window.dispatchEvent(new EventCtor("notification-preferences-updated"));
         } catch {
           // ignore dispatch issues in non-standard test environments

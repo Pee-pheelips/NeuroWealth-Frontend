@@ -49,9 +49,9 @@ export function TransactionFlow() {
     handleRecoveryAction,
     resetFlow,
     setStage,
-  } = useTransactionFlow({ searchParams, router, isSandboxMode, scenario });
+  } = useTransactionFlow({ searchParams, router, isSandboxMode, scenario, tDomain: t.domain });
 
-  const statusChips = buildStatusChips(kind, formValues);
+  const statusChips = buildStatusChips(kind, formValues, t.domain);
 
   return (
     <div className={styles.page}>

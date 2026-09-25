@@ -181,4 +181,174 @@ describe("useSettingsForm", () => {
     assert.deepEqual(result.current.draft, { enabled: true });
     assert.equal(result.current.editing, true);
   });
+
+  it("manual storage listener does not overwrite saved while editing (#914)", async () => {
+    localStorage.setItem("test-key", JSON.stringify({ enabled: false }));
+
+    const { result } = renderHook(() =>
+      useSettingsForm<Draft>("test-key", { enabled: false }, { auditSection: "test", loadDelayMs: 0 }),
+    );
+
+    await act(async () => {
+      await flush(0);
+    });
+
+    act(() => {
+      result.current.setEditing(true);
+      result.current.setDraft({ enabled: true });
+    });
+
+    assert.equal(result.current.editing, true);
+    assert.deepEqual(result.current.draft, { enabled: true });
+    assert.deepEqual(result.current.saved, { enabled: false });
+
+    // Simulate another tab writing a new value to the same key
+    localStorage.setItem("test-key", JSON.stringify({ enabled: false }));
+
+    await act(async () => {
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "test-key",
+          newValue: JSON.stringify({ enabled: false }),
+        }),
+      );
+      await flush(0);
+    });
+
+    // Saved must not be overwritten while editing
+    assert.deepEqual(result.current.saved, { enabled: false });
+    assert.equal(result.current.editing, true);
+  });
+
+  it("handleCancel reverts to pre-edit value after cross-tab storage event (#914)", async () => {
+    localStorage.setItem("test-key", JSON.stringify({ enabled: false }));
+
+    const { result } = renderHook(() =>
+      useSettingsForm<Draft>("test-key", { enabled: false }, { auditSection: "test", loadDelayMs: 0 }),
+    );
+
+    await act(async () => {
+      await flush(0);
+    });
+
+    act(() => {
+      result.current.setEditing(true);
+      result.current.setDraft({ enabled: true });
+    });
+
+    assert.equal(result.current.editing, true);
+    assert.deepEqual(result.current.draft, { enabled: true });
+    assert.deepEqual(result.current.saved, { enabled: false });
+
+    // Simulate another tab writing a different value
+    localStorage.setItem("test-key", JSON.stringify({ enabled: false }));
+
+    await act(async () => {
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "test-key",
+          newValue: JSON.stringify({ enabled: false }),
+        }),
+      );
+      await flush(0);
+    });
+
+    // Cancel should revert to the pre-edit value, not the other tab's value
+    act(() => {
+      result.current.handleCancel();
+    });
+
+    assert.deepEqual(result.current.draft, { enabled: false });
+    assert.equal(result.current.editing, false);
+  });
+
+  it("synchronizes saved and draft when storage event fires while editing is false (#966)", async () => {
+    localStorage.setItem("test-key", JSON.stringify({ enabled: false }));
+
+    const { result } = renderHook(() =>
+      useSettingsForm<Draft>("test-key", { enabled: false }, { auditSection: "test", loadDelayMs: 0 }),
+    );
+
+    await act(async () => {
+      await flush(0);
+    });
+
+    assert.equal(result.current.editing, false);
+    assert.deepEqual(result.current.saved, { enabled: false });
+    assert.deepEqual(result.current.draft, { enabled: false });
+
+    // Simulate cross-tab storage change
+    localStorage.setItem("test-key", JSON.stringify({ enabled: true }));
+
+    await act(async () => {
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "test-key",
+          newValue: JSON.stringify({ enabled: true }),
+        }),
+      );
+      await flush(0);
+    });
+
+    assert.deepEqual(result.current.saved, { enabled: true });
+    assert.deepEqual(result.current.draft, { enabled: true });
+  });
+
+  it("handleSave dispatches a storage event carrying key and newValue (#966)", async () => {
+    let capturedEvent: StorageEvent | null = null;
+    const handler = (e: Event) => {
+      capturedEvent = e as StorageEvent;
+    };
+    window.addEventListener("storage", handler);
+
+    try {
+      const { result } = renderHook(() =>
+        useSettingsForm<Draft>("test-key", { enabled: false }, { auditSection: "test", saveDelayMs: 0 }),
+      );
+
+      await act(async () => {
+        await flush(650);
+      });
+
+      act(() => {
+        result.current.setDraft({ enabled: true });
+      });
+
+      await act(async () => {
+        await result.current.handleSave();
+      });
+
+      assert.ok(capturedEvent, "expected a storage event to be dispatched");
+      assert.equal((capturedEvent as StorageEvent).key, "test-key");
+      assert.equal((capturedEvent as StorageEvent).newValue, JSON.stringify({ enabled: true }));
+    } finally {
+      window.removeEventListener("storage", handler);
+    }
+  });
+
+  it("ignores storage events for other keys when editing is false (#966)", async () => {
+    localStorage.setItem("test-key", JSON.stringify({ enabled: false }));
+    localStorage.setItem("other-key", JSON.stringify({ enabled: true }));
+
+    const { result } = renderHook(() =>
+      useSettingsForm<Draft>("test-key", { enabled: false }, { auditSection: "test", loadDelayMs: 0 }),
+    );
+
+    await act(async () => {
+      await flush(0);
+    });
+
+    await act(async () => {
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "other-key",
+          newValue: JSON.stringify({ enabled: true }),
+        }),
+      );
+      await flush(0);
+    });
+
+    assert.deepEqual(result.current.saved, { enabled: false });
+    assert.deepEqual(result.current.draft, { enabled: false });
+  });
 });

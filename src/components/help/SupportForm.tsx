@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, useRef } from "react";
+import { useState, useMemo, type FormEvent, useRef } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 import {
@@ -78,6 +78,7 @@ export default function SupportForm() {
   });
   const [errors, setErrors] = useState<ValidationErrors<SupportField>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitCount, setSubmitCount] = useState(0);
   const [submissionState, setSubmissionState] = useState<SubmissionState>({
     status: "idle",
   });
@@ -148,6 +149,7 @@ export default function SupportForm() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitted(true);
+    setSubmitCount((c) => c + 1);
     setSubmissionState({ status: "idle" });
 
     const nextErrors = validateSync();
@@ -211,7 +213,10 @@ export default function SupportForm() {
     errors.subject || errors.category || errors.message || errors.transactionId
       ? t.requestSectionError
       : undefined;
-  const summaryErrors = submitted ? getErrorList(errors) : [];
+  const summaryErrors = useMemo(
+    () => (submitted ? getErrorList(errors) : []),
+    [submitted, errors],
+  );
 
   const updateField = (field: keyof FormData, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));
@@ -270,6 +275,7 @@ export default function SupportForm() {
         <FormErrorSummary
           title={t.errorSummaryTitle}
           errors={summaryErrors}
+          submitCount={submitCount}
         />
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>

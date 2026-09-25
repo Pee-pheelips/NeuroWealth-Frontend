@@ -41,14 +41,6 @@ export function lengthRange(
   return trimmed.length >= minimum && trimmed.length <= maximum ? undefined : message;
 }
 
-export function matchesPattern(value: string, pattern: RegExp, message: string) {
-  if (!value.trim()) {
-    return undefined;
-  }
-
-  return pattern.test(value) ? undefined : message;
-}
-
 export function getErrorList<T extends string>(errors: ValidationErrors<T>) {
   return Object.values(errors).filter((value): value is string => Boolean(value));
 }

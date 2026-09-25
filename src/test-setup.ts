@@ -25,14 +25,23 @@ export function setupDomGlobals() {
   });
 
   Object.defineProperty(globalThis, "window", { value: dom.window, writable: true, configurable: true });
+  Object.defineProperty(globalThis, "self", { value: dom.window, writable: true, configurable: true });
   Object.defineProperty(globalThis, "document", { value: dom.window.document, writable: true, configurable: true });
   Object.defineProperty(globalThis, "navigator", { value: dom.window.navigator, writable: true, configurable: true });
   Object.defineProperty(globalThis, "HTMLElement", { value: dom.window.HTMLElement, writable: true, configurable: true });
   Object.defineProperty(globalThis, "Node", { value: dom.window.Node, writable: true, configurable: true });
   Object.defineProperty(globalThis, "localStorage", { value: dom.window.localStorage, writable: true, configurable: true });
+  Object.defineProperty(globalThis, "StorageEvent", { value: dom.window.StorageEvent, writable: true, configurable: true });
   Object.defineProperty(globalThis, "MutationObserver", {
     value: dom.window.MutationObserver ||
       class { observe() {} disconnect() {} takeRecords() { return []; } },
+    writable: true,
+    configurable: true,
+  });
+  Object.defineProperty(globalThis, "self", { value: dom.window, writable: true, configurable: true });
+  Object.defineProperty(globalThis, "IntersectionObserver", {
+    value: dom.window.IntersectionObserver ||
+      class { observe() {} unobserve() {} disconnect() {} },
     writable: true,
     configurable: true,
   });

@@ -1,8 +1,10 @@
 'use client';
 
+import { useRef } from "react";
 import { Search, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { NavbarSearchState } from "./useNavbarSearch";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const GlobalSearch = dynamic(
   () => import("../search/GlobalSearch").then((mod) => mod.GlobalSearch),
@@ -63,13 +65,15 @@ export function NavbarSearchTrigger({
 export function NavbarSearchModal({
   isMobileSearchOpen,
   setIsMobileSearchOpen,
-  mobileSearchRef,
-}: Pick<NavbarSearchState, "isMobileSearchOpen" | "setIsMobileSearchOpen" | "mobileSearchRef">) {
+}: Pick<NavbarSearchState, "isMobileSearchOpen" | "setIsMobileSearchOpen">) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(modalRef, isMobileSearchOpen);
+
   if (!isMobileSearchOpen) return null;
 
   return (
     <div
-      ref={mobileSearchRef}
+      ref={modalRef}
       className="fixed inset-0 z-modal bg-slate-950/90 backdrop-blur-md md:hidden"
       role="dialog"
       aria-modal="true"

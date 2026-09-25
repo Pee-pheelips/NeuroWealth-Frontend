@@ -50,6 +50,7 @@ export interface UseTransactionFlowArgs {
   router: FlowRouter;
   isSandboxMode: boolean;
   scenario: ScenarioType;
+  tDomain: any;
 }
 
 export function useTransactionFlow({
@@ -57,6 +58,7 @@ export function useTransactionFlow({
   router,
   isSandboxMode,
   scenario,
+  tDomain,
 }: UseTransactionFlowArgs) {
   const timeoutRef = useRef<number | null>(null);
 
@@ -84,7 +86,7 @@ export function useTransactionFlow({
     reset: resetForm,
     setErrors,
     setValues,
-  } = useTransactionForm(kind);
+  } = useTransactionForm(kind, tDomain);
 
   const {
     isSubmitting,
@@ -98,7 +100,7 @@ export function useTransactionFlow({
     reset: resetApi,
   } = useTransactionAPI();
 
-  const context = getTransactionContext(kind);
+  const context = getTransactionContext(kind, tDomain.context);
 
   useEffect(() => {
     if (timeoutRef.current) {
@@ -120,7 +122,7 @@ export function useTransactionFlow({
       return;
     }
 
-    const snapshot = buildPreviewSnapshot(kind, preview);
+    const snapshot = buildPreviewSnapshot(kind, preview, tDomain);
 
     setStage(snapshot.stage);
     setValues(snapshot.form);
@@ -285,6 +287,7 @@ export function useTransactionFlow({
         const nextReceipt = buildTransactionReceipt(
           result.pending,
           result.pending.nextStatus === "failure" ? "failure" : "success",
+          tDomain.receipt
         );
 
         setReceipt(nextReceipt);

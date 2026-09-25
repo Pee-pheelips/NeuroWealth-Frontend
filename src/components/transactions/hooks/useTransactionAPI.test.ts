@@ -80,6 +80,8 @@ test("requestQuote returns fieldErrors from API details instead of discarding th
   assert.equal(quoteResult.fieldErrors.walletConnected, "Connect a funding wallet");
   assert.equal(result.current.isSubmitting, false);
   assert.ok(result.current.recovery);
+  assert.equal(result.current.fieldErrors.amount, "Amount exceeds available balance");
+  assert.equal(result.current.fieldErrors.walletConnected, "Connect a funding wallet");
 });
 
 test("submitTransaction returns fieldErrors from API details instead of discarding them", async () => {
@@ -116,6 +118,38 @@ test("submitTransaction returns fieldErrors from API details instead of discardi
   );
   assert.equal(result.current.lastErrorReference, "NW-WDR-REF");
   assert.ok(result.current.recovery);
+  assert.equal(
+    result.current.fieldErrors.walletAddress,
+    "Use a valid Stellar public address",
+  );
+});
+
+test("a successful request clears field errors left by a previous failure", async () => {
+  mockErrorResponse({ amount: "Amount exceeds available balance" });
+
+  const { result } = renderHook(() => useTransactionAPI());
+
+  await act(async () => {
+    await result.current.requestQuote("deposit", {
+      amount: "999999",
+      walletAddress: "",
+      walletConnected: true,
+    });
+  });
+
+  assert.equal(result.current.fieldErrors.amount, "Amount exceeds available balance");
+
+  mockSuccessQuote();
+
+  await act(async () => {
+    await result.current.requestQuote("deposit", {
+      amount: "100",
+      walletAddress: "",
+      walletConnected: true,
+    });
+  });
+
+  assert.deepEqual(result.current.fieldErrors, {});
 });
 
 test("requestQuote returns the quote on success", async () => {
